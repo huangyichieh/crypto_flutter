@@ -20,6 +20,14 @@ void main() {
     expect(find.byType(Slider), findsNothing);
 
     final controller = Get.find<CurrencyGraphController>();
+    expect(find.text('Range'), findsNWidgets(2));
+    expect(find.text('Candle'), findsNWidgets(2));
+    controller.setCompareInterval(CurrencyGraphInterval.interval_1w);
+    expect(controller.compareInterval.value, CurrencyGraphInterval.interval_1w);
+    expect(controller.interval.value, CurrencyGraphInterval.interval_1d);
+    controller.setCompareCandle(CurrencyGraphCandle.candles_8h);
+    expect(controller.compareCandle.value, CurrencyGraphCandle.candles_8h);
+    expect(controller.candle.value, CurrencyGraphCandle.candles_15m);
     final countField = find.byType(TextField).last;
     final applyButton = find.text('Apply');
 

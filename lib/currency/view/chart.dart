@@ -5,7 +5,8 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../model/currency_stats.dart';
 
-const _horizontalPadding = 16.0;
+const _leftPadding = 72.0;
+const _rightPadding = 16.0;
 const _verticalPadding = 20.0;
 const _bottomPadding = 40.0;
 const _seriesColors = [
@@ -29,9 +30,9 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   double? _hoverFraction;
 
   void _updateHover(Offset position, double width) {
-    final graphWidth = math.max(1.0, width - _horizontalPadding * 2);
+    final graphWidth = math.max(1.0, width - _leftPadding - _rightPadding);
     setState(() {
-      _hoverFraction = ((position.dx - _horizontalPadding) / graphWidth).clamp(
+      _hoverFraction = ((position.dx - _leftPadding) / graphWidth).clamp(
         0.0,
         1.0,
       );
@@ -107,9 +108,9 @@ class _MultiSeriesGraphState extends State<MultiSeriesGraph> {
   double? _hoverFraction;
 
   void _updateHover(Offset position, double width) {
-    final graphWidth = math.max(1.0, width - _horizontalPadding * 2);
+    final graphWidth = math.max(1.0, width - _leftPadding - _rightPadding);
     setState(() {
-      _hoverFraction = ((position.dx - _horizontalPadding) / graphWidth).clamp(
+      _hoverFraction = ((position.dx - _leftPadding) / graphWidth).clamp(
         0.0,
         1.0,
       );
@@ -254,7 +255,7 @@ class _HoverTooltip extends StatelessWidget {
                   child: Row(
                     children: [
                       Text(
-                        '? ${row.label}',
+                        '● ${row.label}',
                         style: TextStyle(
                           color: row.color,
                           fontWeight: FontWeight.w600,
@@ -280,7 +281,7 @@ double _tooltipLeft(
   double tooltipWidth,
 ) {
   final pointerX =
-      _horizontalPadding + (availableWidth - _horizontalPadding * 2) * fraction;
+      _leftPadding + (availableWidth - _leftPadding - _rightPadding) * fraction;
   final preferred = pointerX + 12;
   return preferred + tooltipWidth <= availableWidth
       ? preferred
@@ -298,12 +299,19 @@ class _MultiSeriesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(
-      _horizontalPadding,
+      _leftPadding,
       _verticalPadding,
-      size.width - _horizontalPadding * 2,
+      size.width - _leftPadding - _rightPadding,
       size.height - _verticalPadding - _bottomPadding,
     );
     _drawGrid(canvas, rect);
+    _drawYAxisLabels(
+      canvas,
+      rect,
+      minValue: 0,
+      maxValue: 100,
+      formatter: (value) => '${value.round()}%',
+    );
     var seriesIndex = 0;
     for (final graph in data.values) {
       if (graph.currency.length < 2) continue;
@@ -366,9 +374,9 @@ class _GraphPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (data.currency.isEmpty) return;
     final rect = Rect.fromLTWH(
-      _horizontalPadding,
+      _leftPadding,
       _verticalPadding,
-      size.width - _horizontalPadding * 2,
+      size.width - _leftPadding - _rightPadding,
       size.height - _verticalPadding - _bottomPadding,
     );
     canvas.drawRect(rect, Paint()..color = const Color(0xFF0B1220));
@@ -376,6 +384,13 @@ class _GraphPainter extends CustomPainter {
     final minValue = data.currency.reduce(math.min);
     final maxValue = data.currency.reduce(math.max);
     final spread = maxValue == minValue ? 1.0 : maxValue - minValue;
+    _drawYAxisLabels(
+      canvas,
+      rect,
+      minValue: minValue,
+      maxValue: maxValue,
+      formatter: _formatAxisValue,
+    );
     if (data.currency.length == 1) return;
     final path = Path();
     for (var i = 0; i < data.currency.length; i++) {
@@ -429,6 +444,43 @@ void _drawGrid(Canvas canvas, Rect rect) {
     final y = rect.top + rect.height * i / 4;
     canvas.drawLine(Offset(rect.left, y), Offset(rect.right, y), paint);
   }
+}
+
+void _drawYAxisLabels(
+  Canvas canvas,
+  Rect rect, {
+  required double minValue,
+  required double maxValue,
+  required String Function(double value) formatter,
+}) {
+  const style = TextStyle(color: Color(0xFF94A3B8), fontSize: 11);
+  for (final (value, y) in [(maxValue, rect.top), (minValue, rect.bottom)]) {
+    final painter = TextPainter(
+      text: TextSpan(text: formatter(value), style: style),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout(maxWidth: _leftPadding - 12);
+    final labelY = (y - painter.height / 2).clamp(
+      0.0,
+      rect.bottom - painter.height,
+    );
+    painter.paint(canvas, Offset(rect.left - painter.width - 8, labelY));
+  }
+}
+
+String _formatAxisValue(double value) {
+  final absolute = value.abs();
+  if (absolute >= 1000000000) {
+    return '${(value / 1000000000).toStringAsFixed(1)}B';
+  }
+  if (absolute >= 1000000) {
+    return '${(value / 1000000).toStringAsFixed(1)}M';
+  }
+  if (absolute >= 1000) return '${(value / 1000).toStringAsFixed(1)}K';
+  if (absolute >= 100) return value.toStringAsFixed(0);
+  if (absolute >= 1) return value.toStringAsFixed(2);
+  if (absolute == 0) return '0';
+  return value.toStringAsPrecision(3);
 }
 
 void _drawHoverLine(Canvas canvas, Rect rect, double? fraction) {

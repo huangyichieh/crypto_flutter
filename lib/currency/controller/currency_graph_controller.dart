@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 
+import '../model/currency_stats.dart';
 import '../service/binance.dart';
 import '../service/favorite_list.dart';
-import '../model/currency_stats.dart';
 
 class CurrencyGraphController extends GetxController {
   CurrencyGraphController({FavoriteListService? favoriteListService})
@@ -21,6 +21,12 @@ class CurrencyGraphController extends GetxController {
   final endInterval = DateTime.now().obs;
   final candle = CurrencyGraphCandle.candles_15m.obs;
   final interval = CurrencyGraphInterval.interval_1d.obs;
+  final compareStartInterval = DateTime.now()
+      .subtract(const Duration(days: 1))
+      .obs;
+  final compareEndInterval = DateTime.now().obs;
+  final compareCandle = CurrencyGraphCandle.candles_15m.obs;
+  final compareInterval = CurrencyGraphInterval.interval_1d.obs;
   final loading = false.obs;
   final marketLoading = false.obs;
   final compareLoading = false.obs;
@@ -59,6 +65,7 @@ class CurrencyGraphController extends GetxController {
           'Unable to load Binance market data. Check your connection.';
     } finally {
       loading.value = false;
+      marketLoading.value = false;
     }
   }
 
@@ -94,7 +101,6 @@ class CurrencyGraphController extends GetxController {
     }
     _ensureCandleValid();
     refreshGraph();
-    refreshComparison();
   }
 
   void setCustomRange(DateTime start, DateTime end) {
@@ -103,12 +109,36 @@ class CurrencyGraphController extends GetxController {
     endInterval.value = end.add(const Duration(days: 1));
     _ensureCandleValid();
     refreshGraph();
-    refreshComparison();
   }
 
   void setCandle(CurrencyGraphCandle next) {
     candle.value = next;
     refreshGraph();
+  }
+
+  void setCompareInterval(CurrencyGraphInterval next) {
+    compareInterval.value = next;
+    if (next != CurrencyGraphInterval.custom) {
+      compareEndInterval.value = DateTime.now();
+      compareStartInterval.value = compareEndInterval.value.subtract(
+        next.toDuration(),
+      );
+      compareCandle.value = defaultCandles[next] ?? compareCandle.value;
+    }
+    _ensureCompareCandleValid();
+    refreshComparison();
+  }
+
+  void setCompareCustomRange(DateTime start, DateTime end) {
+    compareInterval.value = CurrencyGraphInterval.custom;
+    compareStartInterval.value = start;
+    compareEndInterval.value = end.add(const Duration(days: 1));
+    _ensureCompareCandleValid();
+    refreshComparison();
+  }
+
+  void setCompareCandle(CurrencyGraphCandle next) {
+    compareCandle.value = next;
     refreshComparison();
   }
 
@@ -148,7 +178,7 @@ class CurrencyGraphController extends GetxController {
     try {
       final entries = await Future.wait(
         compareSymbols.map((symbol) async {
-          return MapEntry(symbol, await _loadGraph(symbol));
+          return MapEntry(symbol, await _loadComparisonGraph(symbol));
         }),
       );
       compareData.assignAll(Map.fromEntries(entries));
@@ -166,10 +196,29 @@ class CurrencyGraphController extends GetxController {
     candle: candle.value,
   );
 
+  Future<CurrencyGraphData> _loadComparisonGraph(String symbol) =>
+      getCurrencyGraphData(
+        symbol: symbol,
+        startInterval: compareStartInterval.value,
+        endInterval: compareEndInterval.value,
+        candle: compareCandle.value,
+      );
+
   void _ensureCandleValid() {
     final range = endInterval.value.difference(startInterval.value);
     if (candle.value.toDuration() < range) return;
     candle.value = CurrencyGraphCandle.values.firstWhere(
+      (option) => option.toDuration() < range,
+      orElse: () => CurrencyGraphCandle.candles_1m,
+    );
+  }
+
+  void _ensureCompareCandleValid() {
+    final range = compareEndInterval.value.difference(
+      compareStartInterval.value,
+    );
+    if (compareCandle.value.toDuration() < range) return;
+    compareCandle.value = CurrencyGraphCandle.values.firstWhere(
       (option) => option.toDuration() < range,
       orElse: () => CurrencyGraphCandle.candles_1m,
     );

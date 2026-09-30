@@ -151,7 +151,7 @@ class _MarketRows extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             child: DataTable(
               columns: const [
-                DataColumn(label: Text('â˜…')),
+                DataColumn(label: Text('★')),
                 DataColumn(label: Text('Symbol')),
                 DataColumn(label: Text('Last Price'), numeric: true),
                 DataColumn(label: Text('24h %'), numeric: true),
@@ -236,9 +236,130 @@ class CurrencyCompareView extends StatelessWidget {
             )
           else
             MultiSeriesGraph(data: controller.compareData, height: 320),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 650) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildRangeControls(context, controller),
+                    const SizedBox(height: 16),
+                    _buildCandleControls(controller),
+                  ],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: _buildRangeControls(context, controller)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildCandleControls(controller)),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
+  }
+
+  Widget _buildRangeControls(
+    BuildContext context,
+    CurrencyGraphController controller,
+  ) {
+    final selected = controller.compareInterval.value;
+    final customSelected = selected == CurrencyGraphInterval.custom;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Range'),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: CurrencyGraphInterval.values.map((item) {
+            final label = item == CurrencyGraphInterval.custom && customSelected
+                ? _customRangeLabel(controller)
+                : item.label();
+            return ChoiceChip(
+              label: Text(label),
+              selected: selected == item,
+              onSelected: (_) => item == CurrencyGraphInterval.custom
+                  ? _pickCustomRange(context, controller)
+                  : controller.setCompareInterval(item),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCandleControls(CurrencyGraphController controller) {
+    final rangeDuration = controller.compareEndInterval.value.difference(
+      controller.compareStartInterval.value,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Candle'),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: CurrencyGraphCandle.values.map((item) {
+            final disabled = item.toDuration() >= rangeDuration;
+            return ChoiceChip(
+              label: Text(item.label()),
+              selected: controller.compareCandle.value == item,
+              onSelected: disabled
+                  ? null
+                  : (_) => controller.setCompareCandle(item),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  String _customRangeLabel(CurrencyGraphController controller) {
+    final formatter = DateFormat('yyyy/MM/dd');
+    final start = formatter.format(controller.compareStartInterval.value);
+    final end = formatter.format(
+      controller.compareEndInterval.value.subtract(const Duration(days: 1)),
+    );
+    return '$start to $end';
+  }
+
+  Future<void> _pickCustomRange(
+    BuildContext context,
+    CurrencyGraphController controller,
+  ) async {
+    final dates = await showCalendarDatePicker2Dialog(
+      context: context,
+      dialogSize: const Size(360, 430),
+      dialogBackgroundColor: const Color(0xFF2A3A50),
+      borderRadius: BorderRadius.circular(16),
+      barrierColor: Colors.black.withValues(alpha: 0.72),
+      value: [
+        controller.compareStartInterval.value,
+        controller.compareEndInterval.value,
+      ],
+      config: CalendarDatePicker2WithActionButtonsConfig(
+        calendarType: CalendarDatePicker2Type.range,
+        firstDate: DateTime(2015, 8, 7),
+        lastDate: DateTime.now(),
+        selectedDayHighlightColor: const Color(0xFF38BDF8),
+        selectedRangeHighlightColor: const Color(0xFF334E68),
+      ),
+    );
+    if (dates != null && dates.length == 2) {
+      final start = dates[0];
+      final end = dates[1];
+      if (start != null && end != null) {
+        controller.setCompareCustomRange(start, end);
+      }
+    }
   }
 }
 
