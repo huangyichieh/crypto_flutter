@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../graph/graph.dart';
-import '../../model/currency_stats.dart';
+import 'chart.dart';
+import '../model/currency_stats.dart';
 import '../controller/currency_graph_controller.dart';
 
 class CurrencyMarketTable extends StatelessWidget {
@@ -73,7 +73,7 @@ class _MarketRows extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: DataTable(
           columns: const [
-            DataColumn(label: Text('★')),
+            DataColumn(label: Text('?')),
             DataColumn(label: Text('Symbol')),
             DataColumn(label: Text('Last Price'), numeric: true),
             DataColumn(label: Text('24h %'), numeric: true),

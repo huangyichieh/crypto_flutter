@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-import '../../graph/graph.dart';
-import '../../model/currency_stats.dart';
+import 'chart.dart';
+import '../model/currency_stats.dart';
 import '../controller/currency_graph_controller.dart';
 
 class CurrencyGraph extends StatelessWidget {

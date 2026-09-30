@@ -17,14 +17,17 @@ The original Fixed Deposit Rates feature uses Binance's signed Simple Earn endpo
 
 ```text
 lib/
-├── api/                 # Binance REST client
 ├── currency/
-│   ├── controller/      # GetX reactive state and actions
-│   └── view/            # Graph, market table, and comparison views
-├── firebase/            # Legacy path; now contains local favorites storage
-├── graph/               # CustomPaint chart widgets
-├── home/                # App composition and GetX binding
-├── model/               # Market and chart models
+│   ├── controller/      # GetX market state and actions
+│   ├── model/           # Market and chart data
+│   ├── service/         # Binance API and local favorites storage
+│   ├── view/            # Graph, chart, and market table widgets
+│   └── view.dart        # Public view exports
+├── home/
+│   ├── binding.dart     # Home dependencies
+│   ├── view/            # Dashboard page
+│   └── view.dart        # Public view export
+├── main_theme.dart      # App theme
 └── main.dart            # GetMaterialApp entry point
 ```
 

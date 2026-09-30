@@ -254,7 +254,7 @@ class _HoverTooltip extends StatelessWidget {
                   child: Row(
                     children: [
                       Text(
-                        '● ${row.label}',
+                        '? ${row.label}',
                         style: TextStyle(
                           color: row.color,
                           fontWeight: FontWeight.w600,

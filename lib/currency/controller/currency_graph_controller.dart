@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 
-import '../../api/binance.dart';
-import '../../firebase/favorite_list.dart';
-import '../../model/currency_stats.dart';
+import '../service/binance.dart';
+import '../service/favorite_list.dart';
+import '../model/currency_stats.dart';
 
 class CurrencyGraphController extends GetxController {
   CurrencyGraphController({FavoriteListService? favoriteListService})

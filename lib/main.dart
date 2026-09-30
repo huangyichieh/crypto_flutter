@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'home/binding/home_binding.dart';
-import 'home/view/home.dart';
+import 'home/binding.dart';
+import 'home/view.dart';
 import 'main_theme.dart';
 
 Future<void> main() async {

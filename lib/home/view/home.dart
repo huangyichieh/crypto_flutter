@@ -1,5 +1,4 @@
-import 'package:crypto_analysis_flutter/currency/view/graph.dart';
-import 'package:crypto_analysis_flutter/currency/view/table.dart';
+import 'package:crypto_analysis_flutter/currency/view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

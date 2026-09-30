@@ -1,5 +1,5 @@
 import 'package:crypto_analysis_flutter/currency/controller/currency_graph_controller.dart';
-import 'package:crypto_analysis_flutter/home/view/home.dart';
+import 'package:crypto_analysis_flutter/home/view.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
