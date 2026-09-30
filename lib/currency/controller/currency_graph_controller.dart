@@ -22,6 +22,7 @@ class CurrencyGraphController extends GetxController {
   final candle = CurrencyGraphCandle.candles_15m.obs;
   final interval = CurrencyGraphInterval.interval_1d.obs;
   final loading = false.obs;
+  final marketLoading = false.obs;
   final compareLoading = false.obs;
   final errorMessage = ''.obs;
 
@@ -40,6 +41,7 @@ class CurrencyGraphController extends GetxController {
 
   Future<void> refreshAll() async {
     loading.value = true;
+    marketLoading.value = true;
     errorMessage.value = '';
     try {
       final results = await Future.wait([
@@ -48,6 +50,7 @@ class CurrencyGraphController extends GetxController {
       ]);
       topMarkets.assignAll(results[0] as List<CurrencyTableData>);
       favorites.assignAll(results[1] as List<String>);
+      marketLoading.value = false;
       _ensureSelection();
       await refreshGraph();
       if (compareSymbols.isNotEmpty) await refreshComparison();
@@ -80,7 +83,7 @@ class CurrencyGraphController extends GetxController {
     await refreshComparison();
   }
 
-  void setTopCount(double value) => topCount.value = value.round();
+  void setTopCount(int value) => topCount.value = value;
 
   void setInterval(CurrencyGraphInterval next) {
     interval.value = next;

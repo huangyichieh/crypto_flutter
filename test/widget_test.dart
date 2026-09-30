@@ -1,10 +1,14 @@
 import 'package:crypto_analysis_flutter/currency/controller/currency_graph_controller.dart';
+import 'package:crypto_analysis_flutter/currency/model/currency_stats.dart';
 import 'package:crypto_analysis_flutter/home/view.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
 void main() {
   testWidgets('dashboard renders its main sections', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     Get.put(CurrencyGraphController());
     await tester.pumpWidget(const GetMaterialApp(home: HomePage()));
 
@@ -13,6 +17,32 @@ void main() {
     expect(find.text('TOP USDT Markets'), findsOneWidget);
     expect(find.text('Compare Favorites'), findsOneWidget);
     expect(find.text('Fixed Deposit Rates'), findsOneWidget);
+    expect(find.byType(Slider), findsNothing);
+
+    final controller = Get.find<CurrencyGraphController>();
+    final countField = find.byType(TextField).last;
+    final applyButton = find.text('Apply');
+
+    await tester.enterText(countField, '12');
+    expect(controller.topCount.value, 30);
+    expect(find.text('Current: 30'), findsOneWidget);
+
+    await tester.tap(applyButton);
+    await tester.pump();
+    expect(controller.topCount.value, 12);
+    expect(find.text('Current: 12'), findsOneWidget);
+
+    await tester.enterText(countField, '101');
+    await tester.tap(applyButton);
+    await tester.pump();
+    expect(controller.topCount.value, 12);
+    expect(find.text('Enter a number from 1 to 100.'), findsOneWidget);
+
+    await tester.enterText(countField, '');
+    await tester.tap(applyButton);
+    await tester.pump();
+    expect(controller.topCount.value, 12);
+    expect(find.text('Enter a number from 1 to 100.'), findsOneWidget);
 
     Get.reset();
   });
