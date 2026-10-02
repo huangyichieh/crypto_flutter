@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "177506939794",
+    "project_id": "crypto-analysis-793ad",
+    "storage_bucket": "crypto-analysis-793ad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:177506939794:android:ab8b37a4de1202716d474b",
+        "android_client_info": {
+          "package_name": "com.example.crypto_analysis_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCI1beFFN7n3_fyyp7nOT8sCF0U96pGbU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

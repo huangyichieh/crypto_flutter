@@ -42,11 +42,15 @@ class CurrencyGraphController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    refreshAll();
+    _loadInitialData();
   }
 
-  Future<void> refreshAll() async {
-    loading.value = true;
+  Future<void> _loadInitialData() async {
+    await refreshMarkets();
+    await refreshGraph();
+  }
+
+  Future<void> refreshMarkets() async {
     marketLoading.value = true;
     errorMessage.value = '';
     try {
@@ -56,15 +60,11 @@ class CurrencyGraphController extends GetxController {
       ]);
       topMarkets.assignAll(results[0] as List<CurrencyTableData>);
       favorites.assignAll(results[1] as List<String>);
-      marketLoading.value = false;
       _ensureSelection();
-      await refreshGraph();
-      if (compareSymbols.isNotEmpty) await refreshComparison();
     } catch (_) {
       errorMessage.value =
           'Unable to load Binance market data. Check your connection.';
     } finally {
-      loading.value = false;
       marketLoading.value = false;
     }
   }
